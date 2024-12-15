@@ -1,0 +1,1 @@
+from models.multiclass_model import MulticlassModel

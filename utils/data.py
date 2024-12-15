@@ -49,7 +49,7 @@ def get_default_transforms(dataset_type):
         raise NotImplementedError(f"Unknown dataset type: {dataset_type}")
 
 
-def get_train_test_dataloaders(
+def get_loaders(
         train_csv_path=TRAIN_CSV, 
         test_csv_path=TEST_CSV,
         train_files_dir=TRAIN_DIR,
@@ -57,7 +57,10 @@ def get_train_test_dataloaders(
         train_transforms=None,
         test_transforms=None,
         val_frac=0.05,
-        batch_size=32):
+        batch_size=32,
+        num_workers=1,
+        persistent_workers=False,
+        pin_memory=False):
     train_df = pd.read_csv(train_csv_path)
     test_df = pd.read_csv(test_csv_path)
 
@@ -84,8 +87,25 @@ def get_train_test_dataloaders(
     train_sampler = SubsetRandomSampler(train_samples_ids.tolist())
     val_sampler = SubsetRandomSampler(val_samples_ids.tolist())
 
-    train_loader = DataLoader(train_dataset, sampler=train_sampler, batch_size=batch_size, drop_last=False)
-    val_loader = DataLoader(train_dataset, sampler=val_sampler, batch_size=batch_size, drop_last=False)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, drop_last=False)
+    train_loader = DataLoader(train_dataset, 
+                              sampler=train_sampler, 
+                              batch_size=batch_size, 
+                              drop_last=False,
+                              num_workers=num_workers,
+                              persistent_workers=persistent_workers,
+                              pin_memory=pin_memory)
+    val_loader = DataLoader(train_dataset, 
+                            sampler=val_sampler, 
+                            batch_size=batch_size, 
+                            drop_last=False,
+                            num_workers=num_workers,
+                            persistent_workers=persistent_workers,
+                            pin_memory=pin_memory)
+    test_loader = DataLoader(test_dataset, 
+                             batch_size=batch_size, 
+                             drop_last=False,
+                             num_workers=num_workers,
+                             persistent_workers=persistent_workers,
+                             pin_memory=pin_memory)
 
     return train_loader, val_loader, test_loader
