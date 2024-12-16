@@ -20,7 +20,7 @@ def mean_average_precision_at_k(y_true:np.ndarray, y_pred:np.ndarray, k:int=10, 
     """
     y_pred_topk = np.argsort(y_pred, axis=1)[:, -k:][:, ::-1]
     if cutoff is not None:
-        cutoff_location = np.where(y_pred > cutoff).sum(axis=1)
+        cutoff_location = np.sum(y_pred > cutoff, axis=1)
         # set y_pred_topk[cutoff_location:] to -1 if cutoff_location < k
         # classes following the cutoff should be shifted to the right
         for i in range(y_pred_topk.shape[0]):

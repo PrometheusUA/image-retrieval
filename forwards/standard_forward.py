@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 
 from torch.nn import Module
-from torch.nn.functional import one_hot
+from torch.nn.functional import one_hot, sigmoid
 from lightning import LightningModule
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
@@ -56,30 +56,31 @@ class StandardForward(LightningModule):
         return loss
 
     def test_step(self, input):
-        imgs, labels = input
+        imgs = input
         preds = self(imgs)
-        if self.expand_labels:
-            labels_ = one_hot(labels, num_classes=preds.size(1)).float()
-            loss = self.loss(preds, labels_)
-        else:
-            loss = self.loss(preds, labels)
-        self.log('test/loss', loss, on_epoch=True)
+        return sigmoid(preds)
+        # if self.expand_labels:
+        #     labels_ = one_hot(labels, num_classes=preds.size(1)).float()
+        #     loss = self.loss(preds, labels_)
+        # else:
+        #     loss = self.loss(preds, labels)
+        # self.log('test/loss', loss, on_epoch=True)
 
-        # calculate metrics
-        y_true = labels.cpu().numpy()
-        y_preds = preds.cpu().numpy().argmax(dim=1)
-        acc = accuracy_score(y_true, y_preds)
-        self.log('test/acc', acc)
-        precision = precision_score(y_true, y_preds, average='macro', zero_division=0)
-        self.log('test/precision', precision)
-        recall = recall_score(y_true, y_preds, average='macro', zero_division=0)
-        self.log('test/recall', recall)
-        f1 = f1_score(y_true, y_preds, average='macro', zero_division=0)
-        self.log('test/f1', f1)
-        map_at_5 = mean_average_precision_at_k(y_true, preds.cpu().numpy(), k=5)
-        self.log('test/map_at_5', map_at_5)
+        # # calculate metrics
+        # y_true = labels.cpu().numpy()
+        # y_preds = preds.cpu().numpy().argmax(dim=1)
+        # acc = accuracy_score(y_true, y_preds)
+        # self.log('test/acc', acc)
+        # precision = precision_score(y_true, y_preds, average='macro', zero_division=0)
+        # self.log('test/precision', precision)
+        # recall = recall_score(y_true, y_preds, average='macro', zero_division=0)
+        # self.log('test/recall', recall)
+        # f1 = f1_score(y_true, y_preds, average='macro', zero_division=0)
+        # self.log('test/f1', f1)
+        # map_at_5 = mean_average_precision_at_k(y_true, preds.cpu().numpy(), k=5)
+        # self.log('test/map_at_5', map_at_5)
 
-        return loss
+        # return loss
     
     def configure_optimizers(self):
         self.optimizer = self.optimizer_config['optimizer'](self.model.parameters(), **self.optimizer_config['optimizer_params'])

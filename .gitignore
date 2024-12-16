@@ -1,5 +1,6 @@
 data
 checkpoints
+submissions
 wandb
 
 __pycache__
