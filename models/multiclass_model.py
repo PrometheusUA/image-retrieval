@@ -29,7 +29,9 @@ class MulticlassModel(nn.Module):
             nn.Linear(self.backbone.feature_info.channels()[-1], self.num_classes)
         )
 
-    def forward(self, x):
+    def forward(self, x, return_embedding: bool = False):
         x = self.backbone(x)[-1]
+        if return_embedding:
+            return self.head[:2](x)
         x = self.head(x)
         return x

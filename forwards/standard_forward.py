@@ -17,8 +17,8 @@ class StandardForward(LightningModule):
         self.loss = loss
         self.expand_labels = expand_labels
 
-    def forward(self, x):
-        return self.model(x)
+    def forward(self, x, *args, **kwargs):
+        return self.model(x, *args, **kwargs)
     
     def training_step(self, input):
         imgs, labels = input
