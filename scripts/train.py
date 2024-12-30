@@ -1,5 +1,6 @@
 import argparse
 import sys
+import torch
 
 sys.path.append('./')
 
@@ -23,9 +24,16 @@ def train(config_path):
 
     model = config.CONFIG['model'](**config.CONFIG['model_params'])
     forward = config.CONFIG['forward'](model, **config.CONFIG['forward_params'])
+
+    if 'start_checkpoint' in config.CONFIG:
+        forward.load_state_dict(torch.load(config.CONFIG['start_checkpoint'])['state_dict'])
+
     trainer_params = config.CONFIG['trainer_params']
     if 'accelerator' not in trainer_params:
         trainer_params['accelerator'] = get_device(lightning=True)
+
+    if trainer_params['accelerator'] == 'gpu':
+        torch.set_float32_matmul_precision('medium')
 
     if 'logger' in trainer_params and isinstance(trainer_params['logger'], WandbLogger):
         trainer_params['logger'].experiment.config.update(config.CONFIG)
