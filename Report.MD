@@ -321,7 +321,7 @@ Embeddings trained by the method are much better (closer for one class and diffe
 
 ![](./assets/arcface_consistency_reg_vit_clip_umap_train_test.png)
 
-#### Arcface  + consistency regularization + VIT CLIP + LORA
+#### Arcface + consistency regularization + VIT CLIP + LORA
 
 Here, instead of fine-tuning the last layers of the VIT CLIP, we tried to fine-tune more layers using Low-Rank Adaptation algorithm. We concentrated on the linear layers inside the attention modules of VIT.
 
@@ -339,6 +339,8 @@ It's learning curves are:
 
 ![](./assets/arcface_consistency_reg_vit_clip_lora_val_metrics.png)
 
+Convergence is slower than for the previous one (34 epochs vs 16 epochs for the previous) here, but the results are slightly better.
+
 And the embeddings:
 
 ![](./assets/arcface_consistency_reg_vit_clip_lora_umap_train.png)
@@ -348,6 +350,33 @@ And the embeddings:
 ![](./assets/arcface_consistency_reg_vit_clip_lora_umap_train_test.png)
 
 They are hardly distinguishable from those above (in terms of classes compactness and interclass distances), but seem to be even more compact and better.
+
+### Additional failures
+
+EfficientNet, ResNext, ConvNext and ResNet101 pretrained models was tried as backbones (with respective augmentations and image sizes changes), 
+but they either gave poor results compared to ResNet50, or were training very slowly.
+
+Multiclass classification model resulted in worse results compared to multilabel ones.
+
+Many augmentation sets were tried, but after 6-7 augmentations there no major difference is observed for all the models trained with such comparison, so the biggest augmentation set used were:
+
+```python
+from torchvision import transforms as T
+
+biggest_aug = T.Compose([
+    T.RandomHorizontalFlip(p=0.5),
+    T.RandomRotation(10),
+    T.ColorJitter(brightness=(0.6, 1.4), contrast=(0.6, 1.4), saturation=(0.6, 1.4), hue=0.1),
+    T.RandomResizedCrop(224, scale=(0.08, 1.0), ratio=(0.75, 1.333), 
+        interpolation=T.InterpolationMode.BICUBIC), # depending on the model
+    T.ToTensor(),
+    T.RandomErasing(p=0.2, scale=(0.02, 0.2), ratio=(1/3, 3), value=0),
+    T.RandomErasing(p=0.2, scale=(0.02, 0.2), ratio=(1/3, 3), value='random'),
+    T.RandomGrayscale(p=0.3),
+    T.Normalize(mean=tensor([0.4815, 0.4578, 0.4082]), # depending on the model
+                std=tensor([0.2686, 0.2613, 0.2758]))
+])
+```
 
 ### Further to try
 
